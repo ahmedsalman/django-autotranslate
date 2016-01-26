@@ -1,9 +1,12 @@
 import collections
 import six
+import re
 
 from autotranslate.compat import goslate, googleapiclient
 
 from django.conf import settings
+
+from yandex_translate import YandexTranslate
 
 
 class BaseTranslatorService:
@@ -32,18 +35,68 @@ class GoSlateTranslatorService(BaseTranslatorService):
     https://bitbucket.org/zhuoqiang/goslate
     """
 
+
     def __init__(self):
-        assert goslate, '`GoSlateTranslatorService` requires `goslate` package'
-        self.service = goslate.Goslate()
+        self.developer_key = getattr(settings, 'YANDEX_TRANSLATE_KEY', None)
+        self.yandex_translate_obj = YandexTranslate(self.developer_key)
+        # assert goslate, '`GoSlateTranslatorService` requires `goslate` package'
+        # self.service = goslate.Goslate()
 
     def translate_string(self, text, target_language, source_language='en'):
         assert isinstance(text, six.string_types), '`text` should a string literal'
-        return self.service.translate(text, target_language, source_language)
+        direction = source_language+'-'+target_language
+        response = self.yandex_translate_obj.translate(text, direction)
+        return response['text'][0]
 
     def translate_strings(self, strings, target_language, source_language='en', optimized=True):
         assert isinstance(strings, collections.Iterable), '`strings` should a iterable containing string_types'
-        translations = self.service.translate(strings, target_language, source_language)
-        return translations if optimized else [_ for _ in translations]
+        direction = source_language+'-'+target_language
+        translation_list = strings
+        count = 0
+        import pdb; pdb.set_trace()
+        for item in strings:
+            variable = None
+            django_variable = None
+            response = self.yandex_translate_obj.translate(item, direction)
+            translation_response = response['text'][0]
+
+            try:
+                variable = re.search('\%\((.*?)\)', item).group(1)
+            except AttributeError:
+                pass
+
+            if variable:
+                translation_response = re.sub('\%\((.*?)\)', '('+variable+')', translation_response)
+
+            try:
+                django_variable = re.search('\{(.*?)\}', item).group(1)
+            except AttributeError:
+                pass
+
+            if django_variable:
+                translation_response = re.sub('\{(.*?)\}', '('+django_variable+')', translation_response)
+
+
+            translation_list[count] = translation_response
+            count += 1
+            if count >= 9:
+                break
+        return translation_list
+
+
+
+    # def __init__(self):
+    #     assert goslate, '`GoSlateTranslatorService` requires `goslate` package'
+    #     self.service = goslate.Goslate()
+    #
+    # def translate_string(self, text, target_language, source_language='en'):
+    #     assert isinstance(text, six.string_types), '`text` should a string literal'
+    #     return self.service.translate(text, target_language, source_language)
+
+    # def translate_strings(self, strings, target_language, source_language='en', optimized=True):
+    #     assert isinstance(strings, collections.Iterable), '`strings` should a iterable containing string_types'
+    #     translations = self.service.translate(strings, target_language, source_language)
+    #     return translations if optimized else [_ for _ in translations]
 
 
 class GoogleAPITranslatorService(BaseTranslatorService):
