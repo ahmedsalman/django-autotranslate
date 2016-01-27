@@ -86,17 +86,9 @@ class GoSlateTranslatorService(BaseTranslatorService):
             for variable in variables:
                 translation_response = re.sub('\{(.*?)\}', '{'+variable+'}', translation_response)
 
-
-
-
-
             translation_list[count] = translation_response
-            print ">>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>."
             print translation_response
-            print ">>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>."
             count += 1
-            if count >= 3:
-                break
         return translation_list
 
 
