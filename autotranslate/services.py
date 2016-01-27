@@ -53,33 +53,49 @@ class GoSlateTranslatorService(BaseTranslatorService):
         direction = source_language+'-'+target_language
         translation_list = strings
         count = 0
-        import pdb; pdb.set_trace()
+
+        from autotranslate.utils import look_placeholders
+        from .management.commands.translate_messages import fix_translation
+
         for item in strings:
             variable = None
-            django_variable = None
-            response = self.yandex_translate_obj.translate(item, direction)
+            response = self.yandex_translate_obj.translate(item, direction, 'html')
             translation_response = response['text'][0]
-
             try:
-                variable = re.search('\%\((.*?)\)', item).group(1)
-            except AttributeError:
+                translation_response = fix_translation(item,  translation_response)
+            except IndexError:
                 pass
 
-            if variable:
-                translation_response = re.sub('\%\((.*?)\)', '('+variable+')', translation_response)
+            variables = re.findall('\%\((.*?)\)', item)
+            for variable in variables:
+                translation_response = re.sub('\%\((.*?)\)', '%('+variable+')', translation_response)
 
-            try:
-                django_variable = re.search('\{(.*?)\}', item).group(1)
-            except AttributeError:
-                pass
+            variables = re.findall('\_\_(.*?)\_\_', item)
+            translate_variables = re.findall('\_\_(.*?)\_\_', translation_response)
+            for translate_variable, variable in zip( translate_variables, variables):
+                if look_placeholders(item, variable, translation_response) == 's':
+                    translation_response = re.sub(r'__' + re.escape(translate_variable) + r'__', '%(' + variable + ')', translation_response )
+                    translation_response = re.sub('~(.*?)~', 's', translation_response)
+                elif look_placeholders(item, variable, translation_response) == 'd':
+                    translation_response = re.sub(r'__' + re.escape(translate_variable) + r'__', '%(' + variable + ')', translation_response )
+                    translation_response = re.sub('~(.*?)~', 'd', translation_response)
+                else:
+                    translation_response = re.sub(r'__' + re.escape(translate_variable) + r'__', '%(' + variable + ')', translation_response )
 
-            if django_variable:
-                translation_response = re.sub('\{(.*?)\}', '('+django_variable+')', translation_response)
+            variables = re.findall('\{(.*?)\}', item)
+            for variable in variables:
+                translation_response = re.sub('\{(.*?)\}', '{'+variable+'}', translation_response)
+
+
+
 
 
             translation_list[count] = translation_response
+            print ">>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>."
+            print translation_response
+            print ">>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>."
             count += 1
-            if count >= 9:
+            if count >= 3:
                 break
         return translation_list
 

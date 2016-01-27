@@ -1,4 +1,5 @@
 import six
+import re
 
 from autotranslate.compat import importlib
 from django.conf import settings
@@ -39,3 +40,15 @@ translator = perform_import(TranslatorService, 'AUTOTRANSLATE_TRANSLATOR_SERVICE
 
 translate_string = translator.translate_string
 translate_strings = translator.translate_strings
+
+
+def look_placeholders(msgid, variable, translate_variable):
+    for place_holder in re.findall('__(.*?)__~s', msgid):
+        if variable == place_holder:
+            return 's'
+
+    for place_holder in re.findall('__(.*?)__~d', msgid):
+        if variable == place_holder:
+            return 'd'
+    else:
+        return
