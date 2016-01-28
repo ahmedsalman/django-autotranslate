@@ -39,6 +39,11 @@ class GoSlateTranslatorService(BaseTranslatorService):
     def __init__(self):
         self.developer_key = getattr(settings, 'YANDEX_TRANSLATE_KEY', None)
         self.yandex_translate_obj = YandexTranslate(self.developer_key)
+        self.count = 0
+
+        # self.number = self.yandex_translate_obj.translate("__number__(~d~", 'fr')
+        # self.text_item = self.yandex_translate_obj.translate("__item__(~s~", 'fr')
+
         # assert goslate, '`GoSlateTranslatorService` requires `goslate` package'
         # self.service = goslate.Goslate()
 
@@ -52,11 +57,12 @@ class GoSlateTranslatorService(BaseTranslatorService):
         assert isinstance(strings, collections.Iterable), '`strings` should a iterable containing string_types'
         direction = source_language+'-'+target_language
         translation_list = strings
-        count = 0
+
+        self.number = self.yandex_translate_obj.translate("__number__(~d~", direction)
+        self.text_item = self.yandex_translate_obj.translate("__item__(~s~", direction)
 
         from autotranslate.utils import look_placeholders
         from .management.commands.translate_messages import fix_translation
-
         for item in strings:
             variable = None
             response = self.yandex_translate_obj.translate(item, direction, 'html')
@@ -65,6 +71,14 @@ class GoSlateTranslatorService(BaseTranslatorService):
                 translation_response = fix_translation(item,  translation_response)
             except IndexError:
                 pass
+
+            if self.number['text'][0] in translation_response:
+                translation_response = translation_response.replace(self.number['text'][0], "%s")
+                continue
+
+            if self.text_item['text'][0] in translation_response:
+                translation_response = translation_response.replace(self.text_item['text'][0], "%d")
+                continue
 
             variables = re.findall('\%\((.*?)\)', item)
             for variable in variables:
@@ -75,20 +89,41 @@ class GoSlateTranslatorService(BaseTranslatorService):
             for translate_variable, variable in zip( translate_variables, variables):
                 if look_placeholders(item, variable, translation_response) == 's':
                     translation_response = re.sub(r'__' + re.escape(translate_variable) + r'__', '%(' + variable + ')', translation_response )
-                    translation_response = re.sub('~(.*?)~', 's', translation_response)
+                    translation_response = re.sub(r'\(~s~', 's', translation_response, 1)
+                    # translation_response = translation_response.replace('(~s~', 's', index)
                 elif look_placeholders(item, variable, translation_response) == 'd':
                     translation_response = re.sub(r'__' + re.escape(translate_variable) + r'__', '%(' + variable + ')', translation_response )
-                    translation_response = re.sub('~(.*?)~', 'd', translation_response)
+                    translation_response = re.sub(r'\(~d~', 'd', translation_response, 1)
+                    # translation_response = translation_response.replace('(~d~', 'd')
                 else:
                     translation_response = re.sub(r'__' + re.escape(translate_variable) + r'__', '%(' + variable + ')', translation_response )
 
-            variables = re.findall('\{(.*?)\}', item)
-            for variable in variables:
-                translation_response = re.sub('\{(.*?)\}', '{'+variable+'}', translation_response)
 
-            translation_list[count] = translation_response
+            variables = re.findall('\{(.*?)\}', item)
+            translate_variables = re.findall('\{(.*?)\}', translation_response)
+            for translate_variable, variable in zip( translate_variables, variables):
+                translation_response = re.sub(r'\{' + re.escape(translate_variable) + r'\}', '{' + variable + '}', translation_response )
+
+
+            if ')_s' in translation_response:
+                translation_response = translation_response.replace(')_s', 's')
+                continue
+
+
+            if ')_d' in translation_response:
+                translation_response = translation_response.replace(')_d', 'd')
+                continue
+
+
+            # variables = re.findall('\{(.*?)\}', item)
+            # for variable in variables:
+            #     translation_response = re.sub('\{(.*?)\}', '{'+variable+'}', translation_response)
+
+            translation_list[self.count] = translation_response
             print translation_response
-            count += 1
+            # if self.count > 100:
+            #     break
+            self.count += 1
         return translation_list
 
 
