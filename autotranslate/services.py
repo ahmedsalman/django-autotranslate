@@ -87,7 +87,8 @@ class GoSlateTranslatorService(BaseTranslatorService):
                 translation_response = re.sub('\{(.*?)\}', '{'+variable+'}', translation_response)
 
             translation_list[count] = translation_response
-            print translation_response
+            print translation_response.encode('utf-8')
+
             count += 1
         return translation_list
 
