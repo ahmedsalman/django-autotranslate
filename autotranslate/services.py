@@ -39,10 +39,9 @@ class GoSlateTranslatorService(BaseTranslatorService):
     def __init__(self):
         self.developer_key = getattr(settings, 'YANDEX_TRANSLATE_KEY', None)
         self.yandex_translate_obj = YandexTranslate(self.developer_key)
-        self.count = 0
 
-        # self.number = self.yandex_translate_obj.translate("__number__(~d~", 'fr')
-        # self.text_item = self.yandex_translate_obj.translate("__item__(~s~", 'fr')
+        self.number = self.yandex_translate_obj.translate("__number__(~d~", 'fr')
+        self.text_item = self.yandex_translate_obj.translate("__item__(~s~", 'fr')
 
         # assert goslate, '`GoSlateTranslatorService` requires `goslate` package'
         # self.service = goslate.Goslate()
@@ -57,9 +56,10 @@ class GoSlateTranslatorService(BaseTranslatorService):
         assert isinstance(strings, collections.Iterable), '`strings` should a iterable containing string_types'
         direction = source_language+'-'+target_language
         translation_list = strings
+        count = 0
 
-        self.number = self.yandex_translate_obj.translate("__number__(~d~", direction)
-        self.text_item = self.yandex_translate_obj.translate("__item__(~s~", direction)
+        # self.number = self.yandex_translate_obj.translate("__number__(~d~", direction)
+        # self.text_item = self.yandex_translate_obj.translate("__item__(~s~", direction)
 
         from autotranslate.utils import look_placeholders
         from .management.commands.translate_messages import fix_translation
@@ -119,11 +119,11 @@ class GoSlateTranslatorService(BaseTranslatorService):
             # for variable in variables:
             #     translation_response = re.sub('\{(.*?)\}', '{'+variable+'}', translation_response)
 
-            translation_list[self.count] = translation_response
-            print translation_response
+            translation_list[count] = translation_response
+            print translation_response.encode('utf-8')
             # if self.count > 100:
             #     break
-            self.count += 1
+            count += 1
         return translation_list
 
 
