@@ -40,6 +40,11 @@ class GoSlateTranslatorService(BaseTranslatorService):
         self.developer_key = getattr(settings, 'YANDEX_TRANSLATE_KEY', None)
         self.yandex_translate_obj = YandexTranslate(self.developer_key)
 
+        # self.number = self.yandex_translate_obj.translate("_|_number_|_(~d~", 'fr')
+        # self.text_item = self.yandex_translate_obj.translate("_|_item_|_(~s~", 'fr')
+        # self.character_s = self.yandex_translate_obj.translate("s", 'fr')
+        # self.character_d = self.yandex_translate_obj.translate("d", 'fr')
+
         # assert goslate, '`GoSlateTranslatorService` requires `goslate` package'
         # self.service = goslate.Goslate()
 
@@ -62,6 +67,10 @@ class GoSlateTranslatorService(BaseTranslatorService):
 
         from autotranslate.utils import look_placeholders
         from .management.commands.translate_messages import fix_translation
+
+        import time
+        time.sleep(15) # delays for 15 seconds
+
         for item in strings:
             variable = None
             response = self.yandex_translate_obj.translate(item, direction, 'html')
