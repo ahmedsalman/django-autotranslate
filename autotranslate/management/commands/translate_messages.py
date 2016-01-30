@@ -164,13 +164,13 @@ def humanize_placeholders(msgid):
         if place_holder[1] == 's':
             return re.sub(
                     r'%(?:\((\w+)\))?([sd])',
-                    lambda match: r'__{0}__~s~'.format(
+                    lambda match: r'__{0}__|s|'.format(
                             match.group(1).lower() if match.group(1) else 'number' if match.group(2) == 'd' else 'item'),
                     msgid)
         elif place_holder[1] == 'd':
             return re.sub(
                     r'%(?:\((\w+)\))?([sd])',
-                    lambda match: r'__{0}__~d~'.format(
+                    lambda match: r'__{0}__|d|'.format(
                             match.group(1).lower() if match.group(1) else 'number' if match.group(2) == 'd' else 'item'),
                     msgid)
 

@@ -60,10 +60,10 @@ class GoSlateTranslatorService(BaseTranslatorService):
         translation_list = strings
         count = 0
 
-        self.number = self.yandex_translate_obj.translate("__number__~d~", direction)
-        self.text_item = self.yandex_translate_obj.translate("__item__~s~", direction)
-        self.character_d = self.yandex_translate_obj.translate("~d~", direction)
-        self.character_s = self.yandex_translate_obj.translate("~s~", direction)
+        self.number = self.yandex_translate_obj.translate("__number__|d|", direction)
+        self.text_item = self.yandex_translate_obj.translate("__item__|s|", direction)
+        self.character_d = self.yandex_translate_obj.translate("|d|", direction)
+        self.character_s = self.yandex_translate_obj.translate("|s|", direction)
 
         from autotranslate.utils import look_placeholders
         from .management.commands.translate_messages import fix_translation
@@ -86,11 +86,11 @@ class GoSlateTranslatorService(BaseTranslatorService):
             if self.text_item['text'][0] in translation_response:
                 translation_response = translation_response.replace(self.text_item['text'][0], "%s")
 
-            if "__item__~s~" in translation_response:
-                translation_response = translation_response.replace('__item__~s~', '%s')
+            if "__item__|s|" in translation_response:
+                translation_response = translation_response.replace('__item__|s|', '%s')
 
-            if "__number__~d~" in translation_response:
-                translation_response = translation_response.replace('__number__~d~', '%d')
+            if "__number__|d|" in translation_response:
+                translation_response = translation_response.replace('__number__|d|', '%d')
 
             variables = re.findall('%\((.*?)\)', item)
             translate_variables = re.findall('%\((.*?)\)', translation_response)
@@ -103,11 +103,11 @@ class GoSlateTranslatorService(BaseTranslatorService):
                 if look_placeholders(item, variable, translation_response) == 's':
                     translation_response = re.sub(r'__' + re.escape(translate_variable) + r'__', '%(' + variable + ')', translation_response)
                     translation_response = re.sub(re.escape(self.character_s['text'][0]), 's', translation_response, 1)
-                    translation_response = re.sub(r'~s~', 's', translation_response, 1)
+                    translation_response = re.sub(r'|s|', 's', translation_response)
                 elif look_placeholders(item, variable, translation_response) == 'd':
                     translation_response = re.sub(r'__' + re.escape(translate_variable) + r'__', '%(' + variable + ')', translation_response)
                     translation_response = re.sub(re.escape(self.character_d['text'][0]), 'd', translation_response, 1)
-                    translation_response = re.sub(r'~d~', 'd', translation_response, 1)
+                    translation_response = re.sub(r'|d|', 'd', translation_response)
                 else:
                     translation_response = re.sub(r'__' + re.escape(translate_variable) + r'__', '%(' + variable + ')', translation_response)
 
