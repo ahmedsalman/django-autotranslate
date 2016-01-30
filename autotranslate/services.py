@@ -87,7 +87,7 @@ class GoSlateTranslatorService(BaseTranslatorService):
                 translation_response = translation_response.replace(self.text_item['text'][0], "%s")
 
             if "__item__(~s~" in translation_response:
-                translation_response = translation_response.replace('_|_item_|_(~s~', '%s')
+                translation_response = translation_response.replace('__item__(~s~', '%s')
 
             if "__number__(~d~" in translation_response:
                 translation_response = translation_response.replace('__number__(~d~', '%d')
