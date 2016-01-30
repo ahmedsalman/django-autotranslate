@@ -60,8 +60,8 @@ class GoSlateTranslatorService(BaseTranslatorService):
         translation_list = strings
         count = 0
 
-        self.number = self.yandex_translate_obj.translate("__number__0000002", direction)
-        self.text_item = self.yandex_translate_obj.translate("__item__0000001", direction)
+        self.number = self.yandex_translate_obj.translate("__xnumber__0000002", direction)
+        self.text_item = self.yandex_translate_obj.translate("__xstring__0000001", direction)
         self.character_d = self.yandex_translate_obj.translate("0000002", direction)
         self.character_s = self.yandex_translate_obj.translate("0000001", direction)
 
@@ -86,11 +86,11 @@ class GoSlateTranslatorService(BaseTranslatorService):
             if self.text_item['text'][0] in translation_response:
                 translation_response = translation_response.replace(self.text_item['text'][0], "%s")
 
-            if "__item__0000001" in translation_response:
-                translation_response = translation_response.replace('__item__0000001', '%s')
+            if "__xstring__0000001" in translation_response:
+                translation_response = translation_response.replace('__xstring__0000001', '%s')
 
-            if "__number__0000002" in translation_response:
-                translation_response = translation_response.replace('__number__0000002', '%d')
+            if "__xnumber__0000002" in translation_response:
+                translation_response = translation_response.replace('__xnumber__0000002', '%d')
 
             variables = re.findall('%\((.*?)\)', item)
             translate_variables = re.findall('%\((.*?)\)', translation_response)
