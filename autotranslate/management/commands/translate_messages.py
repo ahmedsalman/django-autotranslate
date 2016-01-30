@@ -160,13 +160,13 @@ def humanize_placeholders(msgid):
     #         msgid)
 
     msgid = re.sub(
-            r'%(?:\((\w+)\))?(s)',
-            lambda match: r'__{0}__0000001'.format('xstring'),
+            r'%(?:\(([\w\|\:]+)\))?(s)',
+            lambda match: r'___{0}___{1}'.format(match.group(1).lower() if match.group(1) else 's', 'xstr'),
             msgid)
 
     msgid = re.sub(
-            r'%(?:\((\w+)\))?(d)',
-            lambda match: r'__{0}__0000002'.format('xnumber'),
+            r'%(?:\(([\w\|\:]+)\))?(d)',
+            lambda match: r'___{0}___{1}'.format(match.group(1).lower() if match.group(1) else 'd', 'xnum'),
             msgid)
 
     return msgid
@@ -176,7 +176,7 @@ def restore_placeholders(msgid, translation):
     """Restore placeholders in the translated message."""
     placehoders = re.findall(r'(\s*)(%(?:\(\w+\))?[sd])(\s*)', msgid)
     return re.sub(
-            r'(\s*)(__[\w]+?__)(\s*)',
+            r'(\s*)(___[\w]+?___)(\s*)',
             lambda matches: '{0}{1}{2}'.format(placehoders[0][0], placehoders[0][1], placehoders.pop(0)[2]),
             translation)
 

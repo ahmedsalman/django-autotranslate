@@ -43,11 +43,11 @@ translate_strings = translator.translate_strings
 
 
 def look_placeholders(msgid, variable, translate_variable):
-    for place_holder in re.findall('__(.*?)__0000001', msgid):
+    for place_holder in re.findall('___(.*?)___xstr', msgid):
         if variable == place_holder:
             return 's'
 
-    for place_holder in re.findall('__(.*?)__0000002', msgid):
+    for place_holder in re.findall('___(.*?)___xnum', msgid):
         if variable == place_holder:
             return 'd'
     else:
