@@ -93,6 +93,9 @@ class GoSlateTranslatorService(BaseTranslatorService):
                 else:
                     translation_response = re.sub(r'___' + re.escape(translate_variable) + r'___', '%(' + variable + ')', translation_response)
 
+            translation_response = translation_response.replace('%(s)s', '%s')
+            translation_response = translation_response.replace('%(d)s', '%d')
+
             variables = re.findall('\{(.*?)\}', item)
             translate_variables = re.findall('\{(.*?)\}', translation_response)
             for translate_variable, variable in zip( translate_variables, variables):
