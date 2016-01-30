@@ -60,10 +60,10 @@ class GoSlateTranslatorService(BaseTranslatorService):
         translation_list = strings
         count = 0
 
-        self.number = self.yandex_translate_obj.translate("__number__|d|", direction)
-        self.text_item = self.yandex_translate_obj.translate("__item__|s|", direction)
-        self.character_d = self.yandex_translate_obj.translate("|d|", direction)
-        self.character_s = self.yandex_translate_obj.translate("|s|", direction)
+        self.number = self.yandex_translate_obj.translate("__number__0000002", direction)
+        self.text_item = self.yandex_translate_obj.translate("__item__0000001", direction)
+        self.character_d = self.yandex_translate_obj.translate("0000002", direction)
+        self.character_s = self.yandex_translate_obj.translate("0000001", direction)
 
         from autotranslate.utils import look_placeholders
         from .management.commands.translate_messages import fix_translation
@@ -86,11 +86,11 @@ class GoSlateTranslatorService(BaseTranslatorService):
             if self.text_item['text'][0] in translation_response:
                 translation_response = translation_response.replace(self.text_item['text'][0], "%s")
 
-            if "__item__|s|" in translation_response:
-                translation_response = translation_response.replace('__item__|s|', '%s')
+            if "__item__0000001" in translation_response:
+                translation_response = translation_response.replace('__item__0000001', '%s')
 
-            if "__number__|d|" in translation_response:
-                translation_response = translation_response.replace('__number__|d|', '%d')
+            if "__number__0000002" in translation_response:
+                translation_response = translation_response.replace('__number__0000002', '%d')
 
             variables = re.findall('%\((.*?)\)', item)
             translate_variables = re.findall('%\((.*?)\)', translation_response)
@@ -103,11 +103,11 @@ class GoSlateTranslatorService(BaseTranslatorService):
                 if look_placeholders(item, variable, translation_response) == 's':
                     translation_response = re.sub(r'__' + re.escape(translate_variable) + r'__', '%(' + variable + ')', translation_response)
                     translation_response = translation_response.replace(self.character_s['text'][0], 's')
-                    translation_response = translation_response.replace('|s|', 's')
+                    translation_response = translation_response.replace('0000001', 's')
                 elif look_placeholders(item, variable, translation_response) == 'd':
                     translation_response = re.sub(r'__' + re.escape(translate_variable) + r'__', '%(' + variable + ')', translation_response)
                     translation_response = translation_response.replace(self.character_d['text'][0], 'd')
-                    translation_response = translation_response.replace('|d|', 'd')
+                    translation_response = translation_response.replace('0000002', 'd')
                 else:
                     translation_response = re.sub(r'__' + re.escape(translate_variable) + r'__', '%(' + variable + ')', translation_response)
 
@@ -116,11 +116,11 @@ class GoSlateTranslatorService(BaseTranslatorService):
             for translate_variable, variable in zip( translate_variables, variables):
                 translation_response = re.sub(r'\{' + re.escape(translate_variable) + r'\}', '{' + variable + '}', translation_response )
 
-            if '|s|' in translation_response:
-                translation_response = translation_response.replace('|s|', 's')
+            if '0000001' in translation_response:
+                translation_response = translation_response.replace('0000001', 's')
 
-            if '|d|' in translation_response:
-                translation_response = translation_response.replace('|d|', 'd')
+            if '0000002' in translation_response:
+                translation_response = translation_response.replace('0000002', 'd')
 
             translation_list[count] = translation_response
             count += 1
