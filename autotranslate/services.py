@@ -116,11 +116,11 @@ class GoSlateTranslatorService(BaseTranslatorService):
             for translate_variable, variable in zip( translate_variables, variables):
                 translation_response = re.sub(r'\{' + re.escape(translate_variable) + r'\}', '{' + variable + '}', translation_response )
 
-            if ')_s' in translation_response:
-                translation_response = translation_response.replace(')_s', 's')
+            if '|s|' in translation_response:
+                translation_response = translation_response.replace('|s|', 's')
 
-            if ')_d' in translation_response:
-                translation_response = translation_response.replace(')_d', 'd')
+            if '|d|' in translation_response:
+                translation_response = translation_response.replace('|d|', 'd')
 
             translation_list[count] = translation_response
             count += 1
