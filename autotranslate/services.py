@@ -102,11 +102,11 @@ class GoSlateTranslatorService(BaseTranslatorService):
             for translate_variable, variable in zip(translate_variables, variables):
                 if look_placeholders(item, variable, translation_response) == 's':
                     translation_response = re.sub(r'__' + re.escape(translate_variable) + r'__', '%(' + variable + ')', translation_response)
-                    translation_response = re.sub(re.escape(self.character_s['text'][0]), 's', translation_response)
+                    translation_response = translation_response.replace(self.character_s['text'][0], 's')
                     translation_response = translation_response.replace('|s|', 's')
                 elif look_placeholders(item, variable, translation_response) == 'd':
                     translation_response = re.sub(r'__' + re.escape(translate_variable) + r'__', '%(' + variable + ')', translation_response)
-                    translation_response = re.sub(re.escape(self.character_d['text'][0]), 'd', translation_response)
+                    translation_response = translation_response.replace(self.character_d['text'][0], 'd')
                     translation_response = translation_response.replace('|d|', 'd')
                 else:
                     translation_response = re.sub(r'__' + re.escape(translate_variable) + r'__', '%(' + variable + ')', translation_response)
