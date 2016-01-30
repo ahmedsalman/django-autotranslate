@@ -68,8 +68,8 @@ class GoSlateTranslatorService(BaseTranslatorService):
         from autotranslate.utils import look_placeholders
         from .management.commands.translate_messages import fix_translation
 
-        import time
-        time.sleep(15) # delays for 15 seconds
+        #import time
+        #time.sleep(15) # delays for 15 seconds
 
         for item in strings:
             variable = None
