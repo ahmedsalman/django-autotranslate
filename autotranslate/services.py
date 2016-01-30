@@ -40,11 +40,6 @@ class GoSlateTranslatorService(BaseTranslatorService):
         self.developer_key = getattr(settings, 'YANDEX_TRANSLATE_KEY', None)
         self.yandex_translate_obj = YandexTranslate(self.developer_key)
 
-        # self.number = self.yandex_translate_obj.translate("_|_number_|_(~d~", 'fr')
-        # self.text_item = self.yandex_translate_obj.translate("_|_item_|_(~s~", 'fr')
-        # self.character_s = self.yandex_translate_obj.translate("s", 'fr')
-        # self.character_d = self.yandex_translate_obj.translate("d", 'fr')
-
         # assert goslate, '`GoSlateTranslatorService` requires `goslate` package'
         # self.service = goslate.Goslate()
 
