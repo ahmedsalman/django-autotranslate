@@ -159,17 +159,29 @@ def humanize_placeholders(msgid):
     #                 match.group(1).lower() if match.group(1) else 'number' if match.group(2) == 'd' else 'item'),
     #         msgid)
 
-    msgid = re.sub(
-            r'%(?:\((\w+)\))?(s)',
-            lambda match: r'__{0}__0000001'.format('xstring'),
+
+    place_holder_list = re.findall('%(?:\((\w+)\))?([sd])', msgid)
+    for place_holder in place_holder_list:
+        if place_holder[1] == 's':
+            return re.sub(
+                    r'%(?:\((\w+)\))?([sd])',
+                    lambda match: r'_|_{0}_|_(~s~'.format(
+                            match.group(1).lower() if match.group(1) else 'number' if match.group(2) == 'd' else 'item'),
+                    msgid)
+        elif place_holder[1] == 'd':
+            return re.sub(
+                    r'%(?:\((\w+)\))?([sd])',
+                    lambda match: r'_|_{0}_|_(~d~'.format(
+                            match.group(1).lower() if match.group(1) else 'number' if match.group(2) == 'd' else 'item'),
+                    msgid)
+
+    return re.sub(
+            r'%(?:\((\w+)\))?([sd])',
+            lambda match: r'_|_{0}_|_'.format(
+                    match.group(1).lower() if match.group(1) else 'number' if match.group(2) == 'd' else 'item'),
             msgid)
 
-    msgid = re.sub(
-            r'%(?:\((\w+)\))?(d)',
-            lambda match: r'__{0}__0000002'.format('xnumber'),
-            msgid)
 
-    return msgid
 
 
 def restore_placeholders(msgid, translation):
