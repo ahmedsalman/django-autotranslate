@@ -161,12 +161,12 @@ def humanize_placeholders(msgid):
 
     msgid = re.sub(
             r'%(?:\(([\w\|\:\.]+)\))?(s)',
-            lambda match: r'_____{0}_____{1}'.format(match.group(1).lower() if match.group(1) else 's', '[[xstr]]'),
+            lambda match: r'_____{0}_____{1}'.format(match.group(1).lower() if match.group(1) else 's', '[[[xstr]]]'),
             msgid)
 
     msgid = re.sub(
             r'%(?:\(([\w\|\:\.]+)\))?(d)',
-            lambda match: r'_____{0}_____{1}'.format(match.group(1).lower() if match.group(1) else 'd', '[[xnum]]'),
+            lambda match: r'_____{0}_____{1}'.format(match.group(1).lower() if match.group(1) else 'd', '[[[xnum]]]'),
             msgid)
 
     return msgid
