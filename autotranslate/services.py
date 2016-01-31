@@ -71,21 +71,21 @@ class GoSlateTranslatorService(BaseTranslatorService):
             except IndexError:
                 pass
 
-            if "_____s_____xstr" in translation_response:
-                translation_response = translation_response.replace('_____s_____xstr', '%s')
+            if "_____s_____[[xstr]]" in translation_response:
+                translation_response = translation_response.replace('_____s_____[[xstr]]', '%s')
 
-            if "_____d_____xnum" in translation_response:
-                translation_response = translation_response.replace('_____d_____xnum', '%d')
+            if "_____d_____[[xnum]]" in translation_response:
+                translation_response = translation_response.replace('_____d_____[[xnum]]', '%d')
 
             variables = re.findall('_____(.*?)_____', item)
             translate_variables = re.findall('_____(.*?)_____', translation_response)
             for translate_variable, variable in zip(translate_variables, variables):
                 if look_placeholders(item, variable, translation_response) == 's':
-                    translation_response = re.sub(r'_____' + re.escape(translate_variable) + r'_____', '%(' + variable + ')s', translation_response)
-                    translation_response = translation_response.replace('xstr', '')
+                    translation_response = re.sub(r'_____' + re.escape(translate_variable) + r'_____', '%(' + variable + ')', translation_response)
+                    translation_response = translation_response.replace('[[xstr]]', 's')
                 elif look_placeholders(item, variable, translation_response) == 'd':
-                    translation_response = re.sub(r'_____' + re.escape(translate_variable) + r'_____', '%(' + variable + ')d', translation_response)
-                    translation_response = translation_response.replace('xnum', '')
+                    translation_response = re.sub(r'_____' + re.escape(translate_variable) + r'_____', '%(' + variable + ')', translation_response)
+                    translation_response = translation_response.replace('[[xnum]]', 'd')
                 else:
                     translation_response = re.sub(r'_____' + re.escape(translate_variable) + r'_____', '%(' + variable + ')', translation_response)
 
