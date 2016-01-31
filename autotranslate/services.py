@@ -106,6 +106,10 @@ class GoSlateTranslatorService(BaseTranslatorService):
             if translation_response.endswith('\n') and  not item.endswith('\n'):
                 translation_response = translation_response + ' '
 
+            # final cleanup
+            translation_response = translation_response.replace('[[xstr]]', 's')
+            translation_response = translation_response.replace('[[xnum]]', 'd')
+
             translation_list[count] = translation_response
             count += 1
             print translation_response.encode('utf-8')
