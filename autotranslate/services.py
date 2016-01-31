@@ -81,11 +81,11 @@ class GoSlateTranslatorService(BaseTranslatorService):
             translate_variables = re.findall('_____(.*?)_____', translation_response)
             for translate_variable, variable in zip(translate_variables, variables):
                 if look_placeholders(item, variable, translation_response) == 's':
-                    translation_response = re.sub(r'_____' + re.escape(translate_variable) + r'_____', '%(' + variable + ')', translation_response)
-                    translation_response = translation_response.replace('xstr', 's')
+                    translation_response = re.sub(r'_____' + re.escape(translate_variable) + r'_____', '%(' + variable + ')s', translation_response)
+                    translation_response = translation_response.replace('xstr', '')
                 elif look_placeholders(item, variable, translation_response) == 'd':
-                    translation_response = re.sub(r'_____' + re.escape(translate_variable) + r'_____', '%(' + variable + ')', translation_response)
-                    translation_response = translation_response.replace('xnum', 'd')
+                    translation_response = re.sub(r'_____' + re.escape(translate_variable) + r'_____', '%(' + variable + ')d', translation_response)
+                    translation_response = translation_response.replace('xnum', '')
                 else:
                     translation_response = re.sub(r'_____' + re.escape(translate_variable) + r'_____', '%(' + variable + ')', translation_response)
 
@@ -99,6 +99,12 @@ class GoSlateTranslatorService(BaseTranslatorService):
             translate_variables = re.findall('\{(.*?)\}', translation_response)
             for translate_variable, variable in zip(translate_variables, variables):
                 translation_response = re.sub(r'\{' + re.escape(translate_variable) + r'\}', '{' + variable + '}', translation_response )
+
+            if translation_response[0] == '\n' and item[0] != '\n':
+                translation_response = ' ' + translation_response
+
+            if translation_response.endswith('\n') and  not item.endswith('\n'):
+                translation_response = translation_response + ' '
 
             translation_list[count] = translation_response
             count += 1
