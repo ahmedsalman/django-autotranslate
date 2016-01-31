@@ -92,6 +92,9 @@ class GoSlateTranslatorService(BaseTranslatorService):
             translation_response = translation_response.replace('%(s)s', '%s')
             translation_response = translation_response.replace('%(d)d', '%d')
 
+            # because French
+            translation_response = translation_response.replace(')_s', ')s')
+
             variables = re.findall('\{(.*?)\}', item)
             translate_variables = re.findall('\{(.*?)\}', translation_response)
             for translate_variable, variable in zip(translate_variables, variables):
