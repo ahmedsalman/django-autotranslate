@@ -89,6 +89,8 @@ class Command(BaseCommand):
         po.save()
 
     def need_translate(self, entry):
+        if self.skip_translated:
+            return not self.skip_translated or not entry.translated()
         return not self.skip_translated or not entry.translated() or not entry.obsolete
 
     def get_strings_to_translate(self, po):
