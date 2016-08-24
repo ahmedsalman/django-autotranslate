@@ -7,6 +7,7 @@ from autotranslate.compat import goslate, googleapiclient
 from django.conf import settings
 
 from yandex_translate import YandexTranslate
+from googleapiclient.discovery import build
 
 
 class BaseTranslatorService:
@@ -62,8 +63,16 @@ class GoSlateTranslatorService(BaseTranslatorService):
 
         from autotranslate.utils import look_placeholders
         from .management.commands.translate_messages import fix_translation
-
+        from general.models import CustomTranslationDictionary
         for item in strings:
+            #add HTML tag for custom translation
+            for custom_translation in CustomTranslationDictionary.objects\
+                    .filter(input_language=source_language, output_language=target_language)\
+                    .order_by('-priority').values_list('original', 'id'):
+                look_up_text = custom_translation[0]
+                if look_up_text in item:
+                    item = item.replace(look_up_text, "<T123T"+str(custom_translation[1])+"/>")
+
             response = self.yandex_translate_obj.translate(item, direction, 'html')
             translation_response = response['text'][0]
             try:
@@ -112,9 +121,16 @@ class GoSlateTranslatorService(BaseTranslatorService):
 
             translation_list[count] = translation_response
             count += 1
+
+            #removing HTML tag with custom translation
+            for custom_translation in CustomTranslationDictionary.objects\
+                    .filter(input_language=source_language, output_language=target_language)\
+                    .order_by('-priority').values_list('translation', 'id'):
+                look_up_text = "<T123T"+str(custom_translation[1])+" />"
+
+                if look_up_text in translation_response:
+                    translation_response = translation_response.replace(look_up_text, custom_translation[0])
             print translation_response.encode('utf-8')
-            # if self.count > 100:
-            #     break
         return translation_list
 
 
@@ -133,49 +149,144 @@ class GoSlateTranslatorService(BaseTranslatorService):
     #     return translations if optimized else [_ for _ in translations]
 
 
+# class GoogleAPITranslatorService(BaseTranslatorService):
+#     """
+#     Uses the paid Google API for translating.
+#     https://github.com/google/google-api-python-client
+#     """
+#
+#     def __init__(self, max_segments=128):
+#         assert googleapiclient, '`GoogleAPITranslatorService` requires `google-api-python-client` package'
+#
+#         self.developer_key = getattr(settings, 'GOOGLE_TRANSLATE_KEY', None)
+#         assert self.developer_key, ('`GOOGLE_TRANSLATE_KEY` is not configured, '
+#                                     'it is required by `GoogleAPITranslatorService`')
+#
+#         from googleapiclient.discovery import build
+#         self.service = build('translate', 'v2', developerKey=self.developer_key)
+#
+#         # the google translation API has a limit of max
+#         # 128 translations in a single request
+#         # and throws `Too many text segments Error`
+#         self.max_segments = max_segments
+#         self.translated_strings = []
+#
+#     def translate_string(self, text, target_language, source_language='en'):
+#         assert isinstance(text, six.string_types), '`text` should a string literal'
+#         response = self.service.translations() \
+#             .list(source=source_language, target=target_language, q=[text]).execute()
+#         return response.get('translations').pop(0).get('translatedText')
+#
+#     def translate_strings(self, strings, target_language, source_language='en', optimized=True):
+#         assert isinstance(strings, collections.MutableSequence), \
+#             '`strings` should be a sequence containing string_types'
+#         assert not optimized, 'optimized=True is not supported in `GoogleAPITranslatorService`'
+#         if len(strings) <= self.max_segments:
+#             setattr(self, 'translated_strings', getattr(self, 'translated_strings', []))
+#             response = self.service.translations() \
+#                 .list(source=source_language, target=target_language, q=strings).execute()
+#             self.translated_strings.extend([t.get('translatedText') for t in response.get('translations')])
+#             return self.translated_strings
+#         else:
+#             self.translate_strings(strings[0:self.max_segments], target_language, source_language, optimized)
+#             _translated_strings = self.translate_strings(strings[self.max_segments:],
+#                                                          target_language, source_language, optimized)
+#
+#             # reset the property or it will grow with subsequent calls
+#             self.translated_strings = []
+#             return _translated_strings
+
+
 class GoogleAPITranslatorService(BaseTranslatorService):
-    """
-    Uses the paid Google API for translating.
-    https://github.com/google/google-api-python-client
-    """
 
-    def __init__(self, max_segments=128):
-        assert googleapiclient, '`GoogleAPITranslatorService` requires `google-api-python-client` package'
-
+    def __init__(self):
         self.developer_key = getattr(settings, 'GOOGLE_TRANSLATE_KEY', None)
-        assert self.developer_key, ('`GOOGLE_TRANSLATE_KEY` is not configured, '
-                                    'it is required by `GoogleAPITranslatorService`')
-
-        from googleapiclient.discovery import build
-        self.service = build('translate', 'v2', developerKey=self.developer_key)
-
-        # the google translation API has a limit of max
-        # 128 translations in a single request
-        # and throws `Too many text segments Error`
-        self.max_segments = max_segments
-        self.translated_strings = []
+        self.translate_obj = build('translate', 'v2', developerKey=self.developer_key)
 
     def translate_string(self, text, target_language, source_language='en'):
         assert isinstance(text, six.string_types), '`text` should a string literal'
-        response = self.service.translations() \
+        response = self.translate_obj.translations() \
             .list(source=source_language, target=target_language, q=[text]).execute()
         return response.get('translations').pop(0).get('translatedText')
 
     def translate_strings(self, strings, target_language, source_language='en', optimized=True):
-        assert isinstance(strings, collections.MutableSequence), \
-            '`strings` should be a sequence containing string_types'
-        assert not optimized, 'optimized=True is not supported in `GoogleAPITranslatorService`'
-        if len(strings) <= self.max_segments:
-            setattr(self, 'translated_strings', getattr(self, 'translated_strings', []))
-            response = self.service.translations() \
-                .list(source=source_language, target=target_language, q=strings).execute()
-            self.translated_strings.extend([t.get('translatedText') for t in response.get('translations')])
-            return self.translated_strings
-        else:
-            self.translate_strings(strings[0:self.max_segments], target_language, source_language, optimized)
-            _translated_strings = self.translate_strings(strings[self.max_segments:],
-                                                         target_language, source_language, optimized)
+        assert isinstance(strings, collections.Iterable), '`strings` should a iterable containing string_types'
+        direction = source_language+'-'+target_language
+        translation_list = strings
+        count = 0
 
-            # reset the property or it will grow with subsequent calls
-            self.translated_strings = []
-            return _translated_strings
+        from autotranslate.utils import look_placeholders
+        from .management.commands.translate_messages import fix_translation
+        for item in strings:
+            response = self.translate_obj.translations().list(source='en', target=target_language, q=item).execute()
+            translation_response = response['translations'][0]['translatedText']
+            try:
+                translation_response = fix_translation(item,  translation_response)
+            except IndexError:
+                pass
+
+            translation_response = translation_response.replace('[ ', '[').replace(' ]', ']')
+            import pdb; pdb.set_trace()
+            if "_____s_____[[[[xstr]]]]" in translation_response:
+                translation_response = translation_response.replace('_____s_____[[[[xstr]]]]', '%s')
+
+            if "_____s_____[[[[XSTR]]]]" in translation_response:
+                translation_response = translation_response.replace('_____s_____[[[[XSTR]]]]', '%s')
+
+            if "_____d_____[[[[xnum]]]]" in translation_response:
+                translation_response = translation_response.replace('_____d_____[[[[xnum]]]]', '%d')
+
+            if "_____d_____[[[[XNUM]]]]" in translation_response:
+                translation_response = translation_response.replace('_____d_____[[[[XNUM]]]]', '%d')
+
+            variables = re.findall('_____(.*?)_____', item)
+            translate_variables = re.findall('_____(.*?)_____', translation_response)
+            for translate_variable, variable in zip(translate_variables, variables):
+                if look_placeholders(item, variable, translation_response) == 's':
+                    translation_response = re.sub(r'_____' + re.escape(translate_variable) + r'_____', '%(' + variable + ')', translation_response)
+                    translation_response = translation_response.replace('[[[[xstr]]]]', 's')
+                    translation_response = translation_response.replace('[[[[XSTR]]]]', 's')
+                elif look_placeholders(item, variable, translation_response) == 'd':
+                    translation_response = re.sub(r'_____' + re.escape(translate_variable) + r'_____', '%(' + variable + ')', translation_response)
+                    translation_response = translation_response.replace('[[[[xnum]]]]', 'd')
+                    translation_response = translation_response.replace('[[[[XNUM]]]]', 'd')
+                else:
+                    translation_response = re.sub(r'_____' + re.escape(translate_variable) + r'_____', '%(' + variable + ')', translation_response)
+
+            translation_response = translation_response.replace('%(s)s', '%s')
+            translation_response = translation_response.replace('%(d)d', '%d')
+
+            translation_response = translation_response.replace('%(s) s', '%s')
+            translation_response = translation_response.replace('%(d) d', '%d')
+
+            # because French
+            translation_response = translation_response.replace(')_s', ')s')
+
+            translation_response = translation_response.replace(') s', ')s')
+            translation_response = translation_response.replace(') d', ')d')
+
+            variables = re.findall('\{(.*?)\}', item)
+            translate_variables = re.findall('\{(.*?)\}', translation_response)
+            for translate_variable, variable in zip(translate_variables, variables):
+                translation_response = re.sub(r'\{' + re.escape(translate_variable) + r'\}', '{' + variable + '}', translation_response )
+
+            if translation_response[0] == '\n' and item[0] != '\n':
+                translation_response = ' ' + translation_response
+
+            if translation_response.endswith('\n') and  not item.endswith('\n'):
+                translation_response = translation_response + ' '
+
+            # final cleanup
+            translation_response = translation_response.replace('&quot;', '"')
+
+            translation_response = translation_response.replace('[[[[xstr]]]]', 's')
+            translation_response = translation_response.replace('[[[[xnum]]]]', 'd')
+
+            translation_response = translation_response.replace('[[[[XSTR]]]]', 's')
+            translation_response = translation_response.replace('[[[[XNUM]]]]', 'd')
+
+            translation_list[count] = translation_response
+            count += 1
+            print item
+            print translation_response
+        return translation_list
