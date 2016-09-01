@@ -65,10 +65,6 @@ class GoSlateTranslatorService(BaseTranslatorService):
         from .management.commands.translate_messages import fix_translation
         from general.models import CustomTranslationDictionary
         for item in strings:
-            
-            if not ("BIM" in item) or ("The BIM Hub" in item):
-                continue
-            
             #add HTML tag for custom translation
             for custom_translation in CustomTranslationDictionary.objects\
                     .filter(input_language=source_language, output_language=target_language)\
